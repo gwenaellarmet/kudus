@@ -1,0 +1,146 @@
+<html>
+  <head>
+    <title>Antelopes Comparator</title>
+    <link href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/tabulator.min.css" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+  </head>
+<body>
+  <div class="container">
+    <h1>Antelopes Comparator</h1>
+    <form class="select" action="areachanged" method="POST">
+      <select id="area" name="areaFilter" onchange="this.form.submit()"> 
+        <option value="World" <%= areaFilter == "World" ? 'selected' : ''%>>world</option> 
+        <option value="Asia" <%= areaFilter == "Asia" ? 'selected' : ''%>>asia</option> 
+        <option value="Africa" <%= areaFilter == "Africa" ? 'selected' : ''%>>africa</option> 
+      </select> 
+    </form>
+    <div class="chart-container">
+      <div>
+        <canvas id="pieChart"></canvas>
+      </div>
+      <div>
+        <canvas id="BubbleChart" height="300"></canvas>
+      </div>
+    </div>
+    <div id="table"></div>
+    <div class="compare-container">
+      <div>
+        <form class="select" action="antelopeAchanged" method="POST">
+          <select id="area" name="antelopeA" onchange="this.form.submit()"> 
+            <%
+            for ( var i = 0; i < antelopes.length; i++ )
+            {
+                var selected = ( antelopes[i].name == antelopeA.name ) ? "selected" : "";
+                %><option value="<%=antelopes[ i ].name %>" <%=selected %>><%=antelopes[ i ].name %></option><%
+            }
+            %>
+          </select> 
+        </form>
+        <div class="antelope-card">
+          <img src="<%= antelopeA.picture %>" alt="<%= antelopeA.name %>"/>
+          <h2><%= antelopeA.name %></h2>
+          <p>weight : <%= antelopeA.weight %></p>
+          <p>height : <%= antelopeA.height %></p>
+          <p>horns : <%= antelopeA.horns %></p>
+          <p>continent : <%= antelopeA.continent %></p>
+        </div>
+      </div>
+      <div>
+        <form class="select" action="antelopeBchanged" method="POST">
+          <select id="area" name="antelopeB" onchange="this.form.submit()"> 
+            <%
+            for ( var i = 0; i < antelopes.length; i++ )
+            {
+                var selected = ( antelopes[0].name == antelopeB.name ) ? "selected" : "";
+                %><option value="<%=antelopes[ i ].name %>" <%=selected %>><%=antelopes[ i ].name %></option><%
+            }
+            %>
+          </select> 
+        </form>
+        <div class="antelope-card">
+          <img src="<%= antelopeB.picture %>" alt="<%= antelopeB.name %>"/>
+          <h2><%= antelopeB.name %></h2>
+          <p>weight : <%= antelopeB.weight %></p>
+          <p>height : <%= antelopeB.height %></p>
+          <p>horns : <%= antelopeB.horns %></p>
+          <p>continent : <%= antelopeB.continent %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+<script type="text/javascript">
+  var ctxPie = document.getElementById('pieChart').getContext('2d');;
+  var dataPie = {
+    labels: <%- JSON.stringify(pieLabels); %>,
+    datasets: [{ 
+      data: <%- JSON.stringify(pieData); %>,
+      backgroundColor: ['#804C1C','#FFC085','#FF9838','#806042','#CC7A2D','#E68932'],
+      borderColor: ['#EFDAB8','#EFDAB8','#EFDAB8','#EFDAB8','#EFDAB8','#EFDAB8']
+    }]
+  };
+  var pieChart = new Chart(ctxPie, {
+    type: 'pie',
+    data: dataPie,
+    options: {
+      responsive : true,
+    }
+  });
+
+  var ctxBubbles = document.getElementById('BubbleChart').getContext('2d');
+  var dataBubbles = {
+    label : 'Antelopes',
+    datasets: <%- JSON.stringify(bubbleDataSet); %>
+  };
+  var pieChart = new Chart(ctxBubbles, {
+    type: 'bubble',
+    data: dataBubbles,
+    options: {
+      responsive  : true,
+      legend: {
+        display: false
+      },
+      scales: {
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'Height',
+            fontColor: '#5D5D5D'
+          }
+        }],
+        xAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'Weight',
+            fontColor: '#5D5D5D'
+          }
+        }]
+      },
+      tooltips: {
+        enabled: true,
+        mode: 'single',
+        callbacks: {
+            label: function(tooltipItems, data) { 
+              return data.datasets[tooltipItems.datasetIndex].label + ' (height: ' + tooltipItems.yLabel + ' - weight: ' + tooltipItems.xLabel + ')';
+            }
+        }
+      }
+    },
+  });
+
+  var table = new Tabulator("#table", {
+    layout:"fitColumns",
+    data: <%- JSON.stringify(filteredAntelopes); %>,
+    columns:[
+      {title:"Name", field:"name", align: "center"},
+      {title:"Continent", field:"continent", align: "center"},
+      {title:"Weight", field:"weight", align: "center"},
+      {title:"Height", field:"height", align:"center"},
+      {title:"Horns", field:"horns", align:"center"},
+    ],
+  });
+</script>
